@@ -1,0 +1,182 @@
+<Application x:Class="RemoteHost.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:RemoteHost.Converters"
+             ShutdownMode="OnExplicitShutdown">
+    <Application.Resources>
+        <ResourceDictionary>
+
+            <!-- Palette (THEME.md) -->
+            <SolidColorBrush x:Key="BgBrush" Color="#0a0a0f"/>
+            <SolidColorBrush x:Key="BgDeepBrush" Color="#07070a"/>
+            <SolidColorBrush x:Key="SurfaceBrush" Color="#121219"/>
+            <SolidColorBrush x:Key="SurfaceAltBrush" Color="#0f0f15"/>
+            <SolidColorBrush x:Key="SurfaceSunkenBrush" Color="#0d0d13"/>
+            <SolidColorBrush x:Key="TitlebarBrush" Color="#15151c"/>
+            <SolidColorBrush x:Key="OnSurfaceBrush" Color="#ece9f2"/>
+            <SolidColorBrush x:Key="OnSurfaceMuted38Brush" Color="#61ece9f2"/>
+            <SolidColorBrush x:Key="OnSurfaceMuted45Brush" Color="#73ece9f2"/>
+            <SolidColorBrush x:Key="OnSurfaceMuted60Brush" Color="#99ece9f2"/>
+            <SolidColorBrush x:Key="BorderBrush2" Color="#12ffffff"/>
+            <SolidColorBrush x:Key="BorderStrongBrush" Color="#1affffff"/>
+            <SolidColorBrush x:Key="AccentStartBrush" Color="#8b5cf6"/>
+            <SolidColorBrush x:Key="AccentEndBrush" Color="#d946ef"/>
+            <SolidColorBrush x:Key="AccentSoftBrush" Color="#298b5cf6"/>
+            <SolidColorBrush x:Key="AccentTextBrush" Color="#c4b5fd"/>
+            <SolidColorBrush x:Key="AccentTextBrightBrush" Color="#ddd4ff"/>
+            <SolidColorBrush x:Key="SuccessBrush" Color="#7ee787"/>
+            <SolidColorBrush x:Key="WarningBrush" Color="#f5c451"/>
+            <SolidColorBrush x:Key="DangerBrush" Color="#f0708f"/>
+            <SolidColorBrush x:Key="DangerSoftBrush" Color="#f0a8c0"/>
+
+            <LinearGradientBrush x:Key="AccentGradientBrush" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#8b5cf6" Offset="0"/>
+                <GradientStop Color="#d946ef" Offset="1"/>
+            </LinearGradientBrush>
+
+            <FontFamily x:Key="UiFontFamily">Plus Jakarta Sans, Segoe UI, sans-serif</FontFamily>
+            <FontFamily x:Key="MonoFontFamily">IBM Plex Mono, Consolas, monospace</FontFamily>
+
+            <!-- Converters -->
+            <conv:ConnectionDotConverter x:Key="ConnectionDotConverter"/>
+            <conv:LogLevelToBrushConverter x:Key="LogLevelToBrushConverter"/>
+            <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+            <conv:ListeningLabelConverter x:Key="ListeningLabelConverter"/>
+            <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+
+            <!-- Card -->
+            <Style x:Key="CardStyle" TargetType="Border">
+                <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BorderBrush2}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="CornerRadius" Value="18"/>
+                <Setter Property="Padding" Value="16"/>
+            </Style>
+
+            <!-- Sidebar nav button: transparent, accent-soft highlight when Tag="Active" -->
+            <Style x:Key="NavButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Foreground" Value="{StaticResource OnSurfaceMuted60Brush}"/>
+                <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Padding" Value="14,10"/>
+                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bg" Background="{TemplateBinding Background}" CornerRadius="12" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bg" Property="Background" Value="#14ffffff"/>
+                                </Trigger>
+                                <Trigger Property="Tag" Value="Active">
+                                    <Setter TargetName="Bg" Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                    <Setter Property="Foreground" Value="{StaticResource AccentTextBrightBrush}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Primary: accent gradient pill -->
+            <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+                <Setter Property="Foreground" Value="{StaticResource AccentTextBrightBrush}"/>
+                <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="Padding" Value="16,10"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bg" Background="{StaticResource AccentGradientBrush}" CornerRadius="14" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bg" Property="Opacity" Value="0.9"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Secondary: flat surface, subtle border -->
+            <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource OnSurfaceBrush}"/>
+                <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="Padding" Value="14,9"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bg" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="14" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bg" Property="Background" Value="{StaticResource SurfaceBrush}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Pill toggle: accent gradient track when on, translucent white track when off -->
+            <Style x:Key="ToggleSwitchStyle" TargetType="CheckBox">
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="CheckBox">
+                            <Grid Width="42" Height="24">
+                                <Border x:Name="Track" CornerRadius="12" Background="#24ffffff"/>
+                                <Border x:Name="Knob" Width="18" Height="18" CornerRadius="9" Background="White"
+                                        HorizontalAlignment="Left" Margin="3,0,0,0"/>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter TargetName="Track" Property="Background" Value="{StaticResource AccentGradientBrush}"/>
+                                    <Setter TargetName="Knob" Property="Margin" Value="21,0,0,0"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Text input on dark surfaces -->
+            <Style x:Key="DarkTextBoxStyle" TargetType="TextBox">
+                <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource OnSurfaceBrush}"/>
+                <Setter Property="CaretBrush" Value="{StaticResource OnSurfaceBrush}"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Padding" Value="8"/>
+                <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="10">
+                                <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
