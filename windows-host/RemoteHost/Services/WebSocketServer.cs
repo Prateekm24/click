@@ -1,3 +1,4 @@
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -565,7 +566,7 @@ public sealed class WebSocketServer
     private static async Task<string?> ReceiveFullMessageAsync(WebSocket socket, byte[] buffer, CancellationToken token)
     {
         using var ms = new MemoryStream();
-        WebSocketReceiveResult result;
+        ValueWebSocketReceiveResult result;
         do
         {
             result = await socket.ReceiveAsync(buffer.AsMemory(), token);
