@@ -47,8 +47,8 @@ import com.google.mlkit.vision.common.InputImage
 import com.remotehost.remote.connection.PairingInfo
 import com.remotehost.remote.connection.PairingPayload
 import com.remotehost.remote.connection.protocolJson
+import com.remotehost.remote.ui.theme.Accent
 import com.remotehost.remote.ui.theme.Bg
-import com.remotehost.remote.ui.theme.DangerRed
 import com.remotehost.remote.ui.theme.OnSurfaceMuted45
 import com.remotehost.remote.ui.theme.Surface
 
@@ -98,7 +98,7 @@ fun QrScanScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .clip(RoundedCornerShape(20.dp))
+                    .clip(RoundedCornerShape(16.dp))
                     .background(Surface),
             ) {
                 CameraPreview(
@@ -130,7 +130,7 @@ fun QrScanScreen(
 
         errorMessage?.let {
             Spacer(Modifier.height(12.dp))
-            Text(it, color = DangerRed, fontSize = 12.sp)
+            Text(it, color = Accent, fontSize = 12.sp)
         }
 
         Spacer(Modifier.height(16.dp))

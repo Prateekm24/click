@@ -1,35 +1,38 @@
 package com.remotehost.remote.ui.theme
 
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
-// THEME.md palette, translated 1:1.
-val Bg = Color(0xFF0A0A0F)
-val BgDeep = Color(0xFF07070A)
-val Surface = Color(0xFF121219)
-val SurfaceAlt = Color(0xFF0F0F15)
-val SurfaceSunken = Color(0xFF0D0D13)
-val Titlebar = Color(0xFF15151C)
+// THEME.md v2 palette — neutral near-black + a single solid red accent. No gradients
+// anywhere in this theme; every accent fill is the flat `accent` color below.
+val Bg = Color(0xFF08080A)
+val BgDeep = Color(0xFF0A0A0B)
+val Surface = Color(0xFF101012)
+val SurfaceAlt = Color(0xFF0E0E10)
+val SurfaceSunken = Color(0xFF0D0D0F)
 
-val OnSurface = Color(0xFFECE9F2)
-val OnSurfaceMuted38 = Color(0x61ECE9F2)
-val OnSurfaceMuted45 = Color(0x73ECE9F2)
-val OnSurfaceMuted60 = Color(0x99ECE9F2)
+val OnSurface = Color(0xFFEEEEEF)
+val OnSurfaceMuted28 = Color(0x47EEEEEF)
+val OnSurfaceMuted32 = Color(0x52EEEEEF)
+val OnSurfaceMuted35 = Color(0x59EEEEEF)
+val OnSurfaceMuted38 = Color(0x61EEEEEF)
+val OnSurfaceMuted45 = Color(0x73EEEEEF)
+val OnSurfaceMuted60 = Color(0x99EEEEEF)
+val OnSurfaceMuted70 = Color(0xB3EEEEEF)
+val OnSurfaceMuted80 = Color(0xCCEEEEEF)
+val OnSurfaceMuted85 = Color(0xD9EEEEEF)
 
-val BorderColor = Color(0x12FFFFFF)
-val BorderStrong = Color(0x1AFFFFFF)
+val BorderColor = Color(0x12FFFFFF) // ~.07
+val BorderStrong = Color(0x1AFFFFFF) // ~.1
 
-val AccentStart = Color(0xFF8B5CF6)
-val AccentEnd = Color(0xFFD946EF)
-val AccentSoft = Color(0x298B5CF6)
-val AccentText = Color(0xFFC4B5FD)
-val AccentTextBright = Color(0xFFDDD4FF)
+// The one accent color: primary buttons, active nav rule, live/good ping state, dial
+// fill, rejected/subnet-lock text alternate. Red means "live / active / primary
+// action" in this palette, not error.
+val Accent = Color(0xFFE8283F)
+val AccentLight = Color(0xFFFF8593) // links, "remove" labels, hover states
+val AccentSoft = Color(0x29E8283F) // ~16% tint, for tinted backgrounds/indicators
 
-val SuccessGreen = Color(0xFF7EE787)
-val WarningYellow = Color(0xFFF5C451)
-val DangerRed = Color(0xFFF0708F)
-val DangerSoft = Color(0xFFF0A8C0)
+// Medium-latency ping state / warn-level rows.
+val Warn = Color(0xFFC9A227)
 
-fun accentGradientBrush(): Brush = Brush.linearGradient(listOf(AccentStart, AccentEnd))
-
-fun neutralGradientBrush(): Brush = Brush.linearGradient(listOf(OnSurfaceMuted45, OnSurface))
+// "Lost" / no-signal / not-yet-connected state — neutral, not red.
+val NeutralLost = Color(0x4DEEEEEF) // ~.3

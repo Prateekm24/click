@@ -26,22 +26,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.remotehost.remote.ui.theme.AccentStart
+import com.remotehost.remote.ui.theme.Accent
 import com.remotehost.remote.ui.theme.Bg
 import com.remotehost.remote.ui.theme.BorderStrong
-import com.remotehost.remote.ui.theme.DangerRed
+import com.remotehost.remote.ui.theme.NeutralLost
 import com.remotehost.remote.ui.theme.OnSurface
 import com.remotehost.remote.ui.theme.OnSurfaceMuted38
 import com.remotehost.remote.ui.theme.OnSurfaceMuted45
-import com.remotehost.remote.ui.theme.WarningYellow
-import com.remotehost.remote.ui.theme.accentGradientBrush
+import com.remotehost.remote.ui.theme.Warn
 
 @Composable
 private fun ConnectionStateScaffold(
@@ -53,6 +51,7 @@ private fun ConnectionStateScaffold(
     dotColor: Color,
     pulsing: Boolean = false,
     accentCta: Boolean = false,
+    onChangeDetails: (() -> Unit)? = null,
 ) {
     Column(
         Modifier
@@ -113,7 +112,7 @@ private fun ConnectionStateScaffold(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(14.dp))
-                .background(if (accentCta) accentGradientBrush() else SolidColor(Color.White.copy(alpha = 0.04f)))
+                .background(if (accentCta) SolidColor(Accent) else SolidColor(Color.White.copy(alpha = 0.04f)))
                 .border(1.dp, BorderStrong, RoundedCornerShape(14.dp))
                 .clickable(onClick = onCta)
                 .padding(13.dp),
@@ -125,44 +124,65 @@ private fun ConnectionStateScaffold(
                 color = if (accentCta) Color.White else OnSurface.copy(alpha = 0.7f),
             )
         }
+
+        if (onChangeDetails != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp)
+                    .clickable(onClick = onChangeDetails)
+                    .padding(vertical = 10.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "Wrong laptop, or details changed? Enter new pairing details",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = OnSurfaceMuted45,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
     }
 }
 
 @Composable
-fun ConnectingScreen(onCancel: () -> Unit, modifier: Modifier = Modifier) {
+fun ConnectingScreen(onCancel: () -> Unit, onChangeDetails: () -> Unit, modifier: Modifier = Modifier) {
     ConnectionStateScaffold(
         code = "STATE / CONNECTING",
         title = "Connecting…",
         body = "Opening a connection to your paired laptop.",
         ctaLabel = "Cancel",
         onCta = onCancel,
-        dotColor = WarningYellow,
+        dotColor = Warn,
         pulsing = true,
+        onChangeDetails = onChangeDetails,
     )
 }
 
 @Composable
-fun ReconnectingScreen(onCancel: () -> Unit, modifier: Modifier = Modifier) {
+fun ReconnectingScreen(onCancel: () -> Unit, onChangeDetails: () -> Unit, modifier: Modifier = Modifier) {
     ConnectionStateScaffold(
         code = "STATE / SEARCHING",
         title = "Reconnecting…",
         body = "Connection dropped. Retrying automatically — controls are unavailable until reconnected.",
         ctaLabel = "Cancel",
         onCta = onCancel,
-        dotColor = WarningYellow,
+        dotColor = Warn,
         pulsing = true,
+        onChangeDetails = onChangeDetails,
     )
 }
 
 @Composable
-fun HostOfflineScreen(onRetry: () -> Unit, modifier: Modifier = Modifier) {
+fun HostOfflineScreen(onRetry: () -> Unit, onChangeDetails: () -> Unit, modifier: Modifier = Modifier) {
     ConnectionStateScaffold(
         code = "STATE / NO HOST",
         title = "Host isn't running",
         body = "The laptop answered, but nothing is listening on that port. Start Remote Host there, then retry.",
         ctaLabel = "Retry",
         onCta = onRetry,
-        dotColor = DangerRed,
+        dotColor = NeutralLost,
+        onChangeDetails = onChangeDetails,
     )
 }
 
@@ -174,7 +194,7 @@ fun TokenRejectedScreen(onRescan: () -> Unit, modifier: Modifier = Modifier) {
         body = "The saved token no longer matches. Show the QR code on the host and scan it again.",
         ctaLabel = "Scan QR",
         onCta = onRescan,
-        dotColor = DangerRed,
+        dotColor = Accent,
         accentCta = true,
     )
 }
@@ -187,19 +207,20 @@ fun FirstRunScreen(onScanClick: () -> Unit, modifier: Modifier = Modifier) {
         body = "Open Remote Host on Windows, then scan the code it shows. One-time setup.",
         ctaLabel = "Scan QR",
         onCta = onScanClick,
-        dotColor = AccentStart,
+        dotColor = Accent,
         accentCta = true,
     )
 }
 
 @Composable
-fun DisconnectedScreen(onReconnect: () -> Unit, modifier: Modifier = Modifier) {
+fun DisconnectedScreen(onReconnect: () -> Unit, onChangeDetails: () -> Unit, modifier: Modifier = Modifier) {
     ConnectionStateScaffold(
         code = "STATE / DISCONNECTED",
         title = "Disconnected",
         body = "You disconnected from the host. Reconnect when you're ready.",
         ctaLabel = "Reconnect",
         onCta = onReconnect,
-        dotColor = DangerRed,
+        dotColor = NeutralLost,
+        onChangeDetails = onChangeDetails,
     )
 }

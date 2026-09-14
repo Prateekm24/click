@@ -14,7 +14,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -81,9 +81,9 @@ fun AppsScreen(connection: RemoteConnection, modifier: Modifier = Modifier) {
 private fun AppTile(app: AppItem, onClick: () -> Unit) {
     Column(
         modifier = Modifier
-            .clip(RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(14.dp))
             .background(Surface)
-            .border(1.dp, BorderColor, RoundedCornerShape(18.dp))
+            .border(1.dp, BorderColor, RoundedCornerShape(14.dp))
             .clickable(onClick = onClick)
             .padding(vertical = 14.dp, horizontal = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

@@ -78,18 +78,36 @@ fun RemoteApp(application: RemoteApplication) {
         return
     }
 
+    fun changeDetails() {
+        application.remoteConnection.stop()
+        stopConnectionService(context)
+        pairingStep = PairingFlowStep.QrScan
+    }
+
     when (val currentPhase = phase) {
         is ConnectionPhase.AuthRejected -> TokenRejectedScreen(onRescan = { pairingStep = PairingFlowStep.QrScan })
-        ConnectionPhase.HostOffline -> HostOfflineScreen(onRetry = { startConnectionService(context, currentPairing) })
-        ConnectionPhase.Reconnecting -> ReconnectingScreen(onCancel = {
-            application.remoteConnection.stop()
-            stopConnectionService(context)
-        })
-        ConnectionPhase.Connecting, ConnectionPhase.NoPairing -> ConnectingScreen(onCancel = {
-            application.remoteConnection.stop()
-            stopConnectionService(context)
-        })
-        ConnectionPhase.Disconnected -> DisconnectedScreen(onReconnect = { startConnectionService(context, currentPairing) })
+        ConnectionPhase.HostOffline -> HostOfflineScreen(
+            onRetry = { startConnectionService(context, currentPairing) },
+            onChangeDetails = ::changeDetails,
+        )
+        ConnectionPhase.Reconnecting -> ReconnectingScreen(
+            onCancel = {
+                application.remoteConnection.stop()
+                stopConnectionService(context)
+            },
+            onChangeDetails = ::changeDetails,
+        )
+        ConnectionPhase.Connecting, ConnectionPhase.NoPairing -> ConnectingScreen(
+            onCancel = {
+                application.remoteConnection.stop()
+                stopConnectionService(context)
+            },
+            onChangeDetails = ::changeDetails,
+        )
+        ConnectionPhase.Disconnected -> DisconnectedScreen(
+            onReconnect = { startConnectionService(context, currentPairing) },
+            onChangeDetails = ::changeDetails,
+        )
         is ConnectionPhase.Connected -> MainScaffold(
             application = application,
             hostName = currentPhase.hostName,

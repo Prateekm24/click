@@ -62,8 +62,8 @@ public partial class App : Application
         showQrItem.Click += (_, _) => ShowMainWindow("Pairing");
         menu.Items.Add(showQrItem);
 
-        var appsItem = new ToolStripMenuItem("App shortcuts…");
-        appsItem.Click += (_, _) => ShowMainWindow("Apps");
+        var appsItem = new ToolStripMenuItem("Launchables…");
+        appsItem.Click += (_, _) => ShowMainWindow("Launchables");
         menu.Items.Add(appsItem);
 
         _pauseMenuItem = new ToolStripMenuItem(_server.IsRunning ? "Pause listening" : "Resume listening");
@@ -85,7 +85,7 @@ public partial class App : Application
         {
             if (args.Button == System.Windows.Forms.MouseButtons.Left)
             {
-                ShowMainWindow("Status");
+                ShowMainWindow("Overview");
             }
         };
     }

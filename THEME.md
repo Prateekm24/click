@@ -1,76 +1,80 @@
-# Visual theme — shared by Android app and Windows Host UI
+# Visual theme — shared by Android app and Windows Host UI (v2)
 
-Extracted from the approved mockups (`Remote Control - App Mocks.dc.html`). Dark,
-high-contrast, violet→magenta accent gradient. Reproduce these values as closely as
-each platform's UI toolkit allows — do not invent a different palette.
+**This supersedes the original violet/magenta theme.** The design direction changed to
+a neutral, near-black palette with a single solid red accent reserved for live state and
+primary actions — no more gradients. Source mockups (read these for exact values before
+touching UI code):
+
+- `C:\Users\prateek.mishra\Downloads\RemotePhonePro.dc.html` — phone "Now controlling"
+  dial screen + media/keys bottom sheet.
+- `C:\Users\prateek.mishra\Downloads\HostWindowQuiet.dc.html` — Host window (Overview /
+  Traffic / Launchables / Pairing panes, ticker, stat strip).
 
 ## Colors
 
 | Token              | Hex / value                          | Usage |
 |---------------------|--------------------------------------|-------|
-| `bg`                | `#0a0a0f`                             | App/screen background |
-| `bgDeep`            | `#07070a`                             | Outermost background (Host titlebar area) |
-| `surface`           | `#121219`                             | Cards, list rows |
-| `surfaceAlt`        | `#0f0f15`                             | Sidebar / secondary panel background |
-| `surfaceSunken`     | `#0d0d13`                             | Bottom nav bar background |
-| `titlebar`          | `#15151c`                             | Host window titlebar / tray menu bg |
-| `onSurface`         | `#ece9f2`                             | Primary text (near-white, slightly violet) |
-| `onSurfaceMuted38`  | `rgba(236,233,242,0.38)`              | Section labels / eyebrow text |
-| `onSurfaceMuted45`  | `rgba(236,233,242,0.45)`              | Body/secondary text |
-| `onSurfaceMuted60`  | `rgba(236,233,242,0.6)`               | Inactive nav / muted labels |
-| `border`            | `rgba(255,255,255,0.07)`              | Card borders |
-| `borderStrong`      | `rgba(255,255,255,0.1)`               | Emphasized borders, dividers |
-| `accentStart`       | `#8b5cf6` (violet)                    | Gradient start |
-| `accentEnd`         | `#d946ef` (magenta)                   | Gradient end |
-| `accentGradient`    | `linear-gradient(140deg, #8b5cf6, #d946ef)` | Primary buttons, active slider fill, play button, FAB-like accents |
-| `accentSoft`        | `rgba(139,92,246,0.16)`               | Selected nav-item background, hero-card tint |
-| `accentText`        | `#c4b5fd`                             | Accent-colored text (active tab, numbers) |
-| `accentTextBright`  | `#ddd4ff`                             | Emphasized accent text (button labels) |
-| `success`           | `#7ee787`                             | Connected dot |
-| `warning`           | `#f5c451`                             | Reconnecting dot / warn log lines |
-| `danger`            | `#f0708f`                             | Offline / error dot |
-| `dangerSoft`        | `#f0a8c0`                             | Disconnect button text |
+| `bg`                | `#08080a`                             | Outermost background |
+| `bgDeep`            | `#0a0a0b`                             | Phone screen background |
+| `surface`           | `#0f0f11` / `#101012`                 | Cards, feature rows, tiles |
+| `surfaceAlt`        | `#0e0e10`                             | Host sidebar / ticker bar background |
+| `titlebar`          | `#131315`                             | Host window titlebar |
+| `hostShell`         | `#0b0b0c`                             | Host window outer shell |
+| `onSurface`         | `#eeeeef`                             | Primary text |
+| `onSurfaceMuted28` … `85` | `rgba(238,238,239, .28 .. .85)` | Secondary/muted text — pick the exact opacity used at each spot in the mock rather than reusing one value everywhere |
+| `border`            | `rgba(255,255,255,.06)` / `.07`       | Card/row borders |
+| `borderStrong`      | `rgba(255,255,255,.09)` / `.1`        | Emphasized borders (pairing panel, toggles) |
+| `accent`            | `#e8283f`                             | The one accent color: primary buttons, active nav rule, live/good ping state, dial fill, rejected/subnet-lock text alternate |
+| `accentLight`       | `#ff8593`                             | Links, "remove" labels, hover states — the lighter red |
+| `warn`              | `#c9a227`                             | Medium-latency ping state, warn-level log rows |
+| `neutralLost`       | `rgba(238,238,239,.3)`                | "Lost"/no-signal ping state |
+
+There is **no gradient** anywhere in v2 — every accent fill is the flat `#e8283f`. Red
+specifically means "live / active / primary action," not error — e.g. the fastest ping
+band is red, not the slowest (amber is the warn band, "LOST" is neutral gray).
 
 ## Typography
 
-- UI / headings / labels: **Plus Jakarta Sans** (weights 400/500/600/700).
-  - Android: bundle as a Compose `FontFamily` if the .ttf files are available;
-    otherwise fall back to the platform default sans-serif (`FontFamily.Default`) —
-    do not block the build on missing font files.
-  - Windows: reference "Plus Jakarta Sans" in XAML with a `FontFamily` fallback chain
-    `"Plus Jakarta Sans, Segoe UI, sans-serif"` so it degrades gracefully if the font
-    isn't installed on the machine.
-- Numeric readouts / mono labels / addresses / log lines: **IBM Plex Mono**. Same
-  fallback approach — degrade to `FontFamily.Monospace` (Android) or `"IBM Plex Mono,
-  Consolas, monospace"` (Windows) if unavailable.
+Same as before: **Plus Jakarta Sans** for UI text/headings, **IBM Plex Mono** for
+numerals, addresses, log lines, ticker text. Same fallback rule: Android falls back to
+`FontFamily.Default`/`FontFamily.Monospace` if no bundled `.ttf`; WPF references
+`"Plus Jakarta Sans, Segoe UI, sans-serif"` / `"IBM Plex Mono, Consolas, monospace"`.
 
-## Shape & spacing
+## Shape
 
-- Large rounded corners throughout: 18–20px on cards/screens, 26px on the biggest
-  containers, full pill (999px / 50%) on sliders, toggle tracks, and round dots.
-- Card padding ~16–18px. Section gaps ~14px.
-- Sliders: 8px tall pill track, 22px circular thumb, soft glow ring around the thumb
-  (`box-shadow` equivalent — use elevation/shadow with the accent color at low opacity).
-- Toggles: 42×24px pill track, 18px circular white knob that slides between the two
-  ends; track color is `accentGradient` when on, `rgba(255,255,255,.14)` when off.
+Noticeably tighter/quieter than v1: cards and rows use **10–16px** corner radius (not
+18–26px), Host sidebar nav items **7px**, pills still full round. Borders are subtler
+(`.05`–`.09` opacity) and there's more reliance on plain flat dark surfaces than on
+tinted/gradient cards.
 
-## Key screen patterns to reproduce
+## Screens (read the source mocks for exact structure)
 
-- **Volume card**: gradient-tinted hero card (`accentSoft` → transparent, radial/linear),
-  big mono readout top-right, full-width slider, row of [Mute | − | +] below.
-- **Brightness card**: plain `surface` card, same slider treatment but white/neutral
-  fill instead of the accent gradient.
-- **Now playing card**: square "art" placeholder tile, title + source text, thin
-  progress bar, 5-across control row (−10s / prev / play·pause / next / +10s) where the
-  center play button is the accent gradient pill and the rest are flat `surface` tiles.
-- **Connection pill** (top-right of the phone header): small status dot (color per
-  state) + mono status text, pill-shaped, tap to reconnect/cycle in dev builds.
-- **Bottom nav**: 4 equal columns (Dashboard / Apps / Touchpad / Settings), simple line
-  icons, active tab colored `accentText`, inactive `onSurfaceMuted38`.
-- **Host window**: fixed left sidebar (~212px) with nav items (Status / App shortcuts /
-  Pairing / General) plus a connection status card pinned to the bottom of the sidebar;
-  main content area on the right per-section.
+- **Phone home ("Now controlling")**: a big radial dial (SVG arc, ~270° sweep) is the
+  primary volume control — drag anywhere on it to set volume by angle from center, not a
+  linear slider. Center shows a large mono volume readout. Below: Mute + "Media & keys"
+  buttons opening a bottom sheet. A "NIGHT" row is the brightness/dim control — a thin
+  linear slider, and as it increases a full-screen black overlay (opacity = dim/160)
+  actually dims the phone's own display to simulate the room going dark. A latency pill
+  top-right shows live ping state (color-coded per the ping bands above).
+- **Media & keys bottom sheet**: a 5-across "Playback" row (−10s/prev/play-pause/
+  next/+10s) and an 8-across "Keys" row (esc/tab/↑/space/←/↓/→/enter).
+- **Host window**: titlebar → a horizontally auto-scrolling "LIVE" ticker strip → a
+  4-column stat row → sidebar nav (**Overview / Traffic / Launchables / Pairing**) +
+  main pane. Overview is descriptive/marketing content (three alternating feature rows,
+  left/right mirrored). Traffic is the raw message log, newest first, with a
+  right-aligned timing column. Launchables is the app-shortcut CRUD (same as v1's "App
+  shortcuts", renamed). Pairing is the QR + address/port/token panel, same shape as v1.
 
-Don't chase pixel-perfect parity with the HTML mock — match the *character*: dark,
-violet/magenta gradient accent, generous rounding, mono numerals, high contrast text
-on near-black surfaces.
+## What's real vs. what was a design-review convenience in the source mocks
+
+The source `.dc.html` files include some behavior that exists only to make the design
+reviewable in isolation — don't reproduce it literally:
+
+- The Host mock's stat strip auto-alternates between two fake datasets every 2.6s, and
+  the phone's ping pill cycles through 3 fake states on tap. **Replace both with one
+  real, live-measured view** — see each project's build notes for what to measure.
+- The phone mock's quick-launch tiles are hardcoded to fictional "Browser / Macro 1 /
+  Sleep PC" entries. **Use the user's actual configured Host shortcuts instead.**
+- The bottom sheet's "Keys" row implies raw keystroke simulation, which is a Phase 2
+  feature not in `PROTOCOL.md`. Keep it visually, but it must not silently pretend to
+  work — see each project's build notes.

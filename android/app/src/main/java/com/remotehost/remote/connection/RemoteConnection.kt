@@ -28,6 +28,17 @@ sealed interface ConnectionPhase {
 data class VolumeState(val value: Int = 0, val muted: Boolean = false)
 
 /**
+ * Live round-trip-latency readout, driven by periodic `ping`/`pong` exchange per
+ * PROTOCOL.md. [Measuring] is the initial/transient state before the first `pong` of a
+ * connection has arrived; [Lost] means a `ping` went unanswered within the timeout.
+ */
+sealed interface RttState {
+    data object Measuring : RttState
+    data class Measured(val ms: Int) : RttState
+    data object Lost : RttState
+}
+
+/**
  * Owns the single WebSocket link to the Host: connects, re-sends `auth` on every new
  * socket per PROTOCOL.md, retries with backoff, and exposes live state as StateFlows.
  * A process-wide singleton (held by RemoteApplication) rather than something scoped to
@@ -59,6 +70,13 @@ class RemoteConnection(private val scope: CoroutineScope) {
     private val _apps = MutableStateFlow<List<AppItem>>(emptyList())
     val apps: StateFlow<List<AppItem>> = _apps.asStateFlow()
 
+    private val _rtt = MutableStateFlow<RttState>(RttState.Measuring)
+    val rtt: StateFlow<RttState> = _rtt.asStateFlow()
+
+    private var pingLoopJob: Job? = null
+    private var pingTimeoutJob: Job? = null
+    private var lastPingSentAtMs: Long = 0L
+
     fun setAutoReconnect(enabled: Boolean) {
         autoReconnectEnabled = enabled
     }
@@ -78,6 +96,7 @@ class RemoteConnection(private val scope: CoroutineScope) {
         reconnectJob?.cancel()
         webSocket?.close(1000, "client disconnect")
         webSocket = null
+        stopPingLoop()
         _phase.value = ConnectionPhase.Disconnected
     }
 
@@ -139,6 +158,7 @@ class RemoteConnection(private val scope: CoroutineScope) {
                 // to avoid the Dashboard sitting on stale defaults after a fresh pair.
                 sendVolumeGet()
                 sendBrightnessGet()
+                startPingLoop()
             }
             "auth_error" -> _phase.value = ConnectionPhase.AuthRejected(msg.message ?: "invalid token")
             "state" -> when (msg.key) {
@@ -149,11 +169,48 @@ class RemoteConnection(private val scope: CoroutineScope) {
                 "brightness" -> msg.value?.let { _brightness.value = it }
             }
             "apps" -> _apps.value = msg.items ?: emptyList()
-            else -> Unit // ack / error / pong: nothing to reflect in UI state today
+            "pong" -> {
+                pingTimeoutJob?.cancel()
+                val elapsed = (System.currentTimeMillis() - lastPingSentAtMs).toInt().coerceAtLeast(0)
+                _rtt.value = RttState.Measured(elapsed)
+            }
+            else -> Unit // ack / error: nothing to reflect in UI state today
         }
     }
 
+    /**
+     * Sends `ping` on a fixed interval and starts a short timeout on each one; a `pong`
+     * (handled above) cancels that timeout and reports the round-trip time. If no
+     * `pong` arrives before the next ping would fire, the previous one is considered
+     * [RttState.Lost] rather than left showing a stale number.
+     */
+    private fun startPingLoop() {
+        pingLoopJob?.cancel()
+        _rtt.value = RttState.Measuring
+        pingLoopJob = scope.launch {
+            while (true) {
+                lastPingSentAtMs = System.currentTimeMillis()
+                sendPing()
+                pingTimeoutJob?.cancel()
+                pingTimeoutJob = launch {
+                    delay(PING_TIMEOUT_MS)
+                    _rtt.value = RttState.Lost
+                }
+                delay(PING_INTERVAL_MS)
+            }
+        }
+    }
+
+    private fun stopPingLoop() {
+        pingLoopJob?.cancel()
+        pingLoopJob = null
+        pingTimeoutJob?.cancel()
+        pingTimeoutJob = null
+        _rtt.value = RttState.Measuring
+    }
+
     private fun scheduleReconnect(interimPhase: ConnectionPhase) {
+        stopPingLoop()
         _phase.value = interimPhase
         if (!autoReconnectEnabled) return
         reconnectJob?.cancel()
@@ -182,5 +239,7 @@ class RemoteConnection(private val scope: CoroutineScope) {
         private const val INITIAL_BACKOFF_MS = 2000L
         private const val MAX_BACKOFF_MS = 10000L
         private const val AUTH_REJECTED_CLOSE_CODE = 4001
+        private const val PING_INTERVAL_MS = 5000L
+        private const val PING_TIMEOUT_MS = 3000L
     }
 }

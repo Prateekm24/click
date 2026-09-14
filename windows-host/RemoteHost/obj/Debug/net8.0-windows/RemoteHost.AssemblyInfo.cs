@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RemoteHost")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e9b627314d08c82cf084b9666e4b319fd530e37c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+10611cabe6cb3ea0d40a209347e22656b63cb462")]
 [assembly: System.Reflection.AssemblyProductAttribute("RemoteHost")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RemoteHost")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

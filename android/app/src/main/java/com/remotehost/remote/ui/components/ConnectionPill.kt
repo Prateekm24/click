@@ -24,22 +24,29 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.remotehost.remote.connection.ConnectionPhase
-import com.remotehost.remote.ui.theme.AccentStart
-import com.remotehost.remote.ui.theme.DangerRed
+import com.remotehost.remote.ui.theme.Accent
+import com.remotehost.remote.ui.theme.NeutralLost
 import com.remotehost.remote.ui.theme.OnSurface
-import com.remotehost.remote.ui.theme.SuccessGreen
-import com.remotehost.remote.ui.theme.WarningYellow
+import com.remotehost.remote.ui.theme.Warn
 
+/**
+ * Overall connection-phase pill shown in the app-wide top bar (distinct from the
+ * dashboard's live latency pill). THEME.md's v2 palette has exactly three signal
+ * colors: accent red for "live/active" (connected, and — per THEME.md's own
+ * "rejected/subnet-lock text alternate" usage note — an explicit rejection), warn amber
+ * for "in progress", and neutral gray for "no signal" (offline/disconnected/unpaired).
+ * There is no separate "error" red distinct from the live/active accent in this theme.
+ */
 @Composable
 fun ConnectionPill(phase: ConnectionPhase, modifier: Modifier = Modifier) {
     val (dotColor, label, pulsing) = when (phase) {
-        is ConnectionPhase.Connected -> Triple(SuccessGreen, "CONNECTED", false)
-        ConnectionPhase.Reconnecting -> Triple(WarningYellow, "RECONNECTING", true)
-        ConnectionPhase.Connecting -> Triple(WarningYellow, "CONNECTING", true)
-        ConnectionPhase.HostOffline -> Triple(DangerRed, "HOST OFFLINE", false)
-        is ConnectionPhase.AuthRejected -> Triple(DangerRed, "REJECTED", false)
-        ConnectionPhase.Disconnected -> Triple(DangerRed, "DISCONNECTED", false)
-        ConnectionPhase.NoPairing -> Triple(AccentStart, "NOT PAIRED", false)
+        is ConnectionPhase.Connected -> Triple(Accent, "CONNECTED", false)
+        ConnectionPhase.Reconnecting -> Triple(Warn, "RECONNECTING", true)
+        ConnectionPhase.Connecting -> Triple(Warn, "CONNECTING", true)
+        ConnectionPhase.HostOffline -> Triple(NeutralLost, "HOST OFFLINE", false)
+        is ConnectionPhase.AuthRejected -> Triple(Accent, "REJECTED", false)
+        ConnectionPhase.Disconnected -> Triple(NeutralLost, "DISCONNECTED", false)
+        ConnectionPhase.NoPairing -> Triple(NeutralLost, "NOT PAIRED", false)
     }
 
     val infiniteTransition = rememberInfiniteTransition(label = "connDot")

@@ -18,10 +18,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
+import com.remotehost.remote.ui.theme.Accent
 import com.remotehost.remote.ui.theme.OnSurfaceMuted45
-import com.remotehost.remote.ui.theme.accentGradientBrush
 
 /** Custom pill toggle matching THEME.md's 42x24 track / 18dp knob spec. */
 @Composable
@@ -50,7 +49,7 @@ fun ToggleRow(
             modifier = Modifier
                 .size(width = 42.dp, height = 24.dp)
                 .clip(RoundedCornerShape(50))
-                .background(if (checked) accentGradientBrush() else SolidColor(Color.White.copy(alpha = 0.14f)))
+                .background(if (checked) Accent else Color.White.copy(alpha = 0.14f))
                 .padding(3.dp),
         ) {
             Box(

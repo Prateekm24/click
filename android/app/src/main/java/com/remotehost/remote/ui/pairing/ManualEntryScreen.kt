@@ -25,9 +25,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.remotehost.remote.connection.PairingInfo
-import com.remotehost.remote.ui.theme.AccentStart
+import com.remotehost.remote.ui.theme.Accent
 import com.remotehost.remote.ui.theme.Bg
-import com.remotehost.remote.ui.theme.DangerRed
 
 @Composable
 fun ManualEntryScreen(
@@ -87,7 +86,7 @@ fun ManualEntryScreen(
             modifier = Modifier.fillMaxWidth(),
         )
 
-        error?.let { Text(it, color = DangerRed, fontSize = 12.sp) }
+        error?.let { Text(it, color = Accent, fontSize = 12.sp) }
 
         Spacer(Modifier.weight(1f))
 
@@ -106,7 +105,7 @@ fun ManualEntryScreen(
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = AccentStart),
+            colors = ButtonDefaults.buttonColors(containerColor = Accent),
         ) {
             Text("Connect")
         }

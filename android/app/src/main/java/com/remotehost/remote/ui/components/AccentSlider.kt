@@ -20,35 +20,32 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import com.remotehost.remote.ui.theme.AccentStart
-import com.remotehost.remote.ui.theme.accentGradientBrush
+import com.remotehost.remote.ui.theme.Accent
 import kotlin.math.roundToInt
 
 /**
- * Pill-track slider with a gradient (or any brush) fill, matching THEME.md's slider
- * spec (8dp track, 22dp thumb, soft glow). Material3's default Slider doesn't support
- * a gradient fill, hence this small custom composable — reused for both volume
- * (accent gradient) and brightness (neutral gradient).
+ * Pill-track slider with a flat, solid-color fill — THEME.md v2 has no gradients
+ * anywhere, so this replaces the old GradientSlider (which filled with a two-color
+ * brush). Used for the dashboard's NIGHT/brightness row; the volume dial has its own
+ * Canvas-based control and doesn't use this.
  */
 @Composable
-fun GradientSlider(
+fun AccentSlider(
     value: Int,
     onValueChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    fillBrush: Brush = accentGradientBrush(),
+    fillColor: Color = Accent,
     enabled: Boolean = true,
 ) {
-    val thumbSize = 22.dp
+    val thumbSize = 14.dp
     val density = LocalDensity.current
 
     BoxWithConstraints(
-        modifier = modifier.fillMaxWidth().height(36.dp),
+        modifier = modifier.fillMaxWidth().height(26.dp),
         contentAlignment = Alignment.CenterStart,
     ) {
         val trackWidthPx = constraints.maxWidth.toFloat()
@@ -63,7 +60,7 @@ fun GradientSlider(
         Box(
             Modifier
                 .fillMaxWidth()
-                .height(8.dp)
+                .height(4.dp)
                 .clip(RoundedCornerShape(50))
                 .background(Color.White.copy(alpha = 0.09f))
                 .then(
@@ -88,7 +85,7 @@ fun GradientSlider(
                     .fillMaxWidth(fraction)
                     .fillMaxHeight()
                     .clip(RoundedCornerShape(50))
-                    .background(if (enabled) fillBrush else SolidColor(Color.White.copy(alpha = 0.16f)))
+                    .background(if (enabled) fillColor else Color.White.copy(alpha = 0.16f))
                     .alpha(if (enabled) 1f else 0.5f),
             )
         }
@@ -98,7 +95,7 @@ fun GradientSlider(
             Modifier
                 .offset(x = thumbOffset)
                 .size(thumbSize)
-                .shadow(elevation = if (enabled) 8.dp else 0.dp, shape = CircleShape, spotColor = AccentStart)
+                .shadow(elevation = if (enabled) 6.dp else 0.dp, shape = CircleShape, spotColor = fillColor)
                 .clip(CircleShape)
                 .background(Color.White)
                 .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)), CircleShape),

@@ -8,19 +8,19 @@ import androidx.compose.ui.graphics.Color
 // The mock is dark-only by design (no light variant in THEME.md), so this theme does
 // not branch on system light/dark setting.
 private val RemoteDarkColorScheme = darkColorScheme(
-    primary = AccentStart,
+    primary = Accent,
     onPrimary = Color.White,
-    secondary = AccentEnd,
+    secondary = Accent,
     onSecondary = Color.White,
-    tertiary = AccentEnd,
-    onTertiary = Color.White,
+    tertiary = Warn,
+    onTertiary = Color.Black,
     background = Bg,
     onBackground = OnSurface,
     surface = Surface,
     onSurface = OnSurface,
     surfaceVariant = SurfaceAlt,
     onSurfaceVariant = OnSurfaceMuted60,
-    error = DangerRed,
+    error = Accent,
     onError = Color.White,
     outline = BorderStrong,
 )

@@ -3,8 +3,8 @@
          needs to exist so the manifest has a launch theme and the window doesn't
          flash white before Compose takes over. -->
     <style name="Theme.Remote" parent="android:Theme.Material.NoActionBar">
-        <item name="android:statusBarColor">#0A0A0F</item>
-        <item name="android:navigationBarColor">#0D0D13</item>
-        <item name="android:windowBackground">#0A0A0F</item>
+        <item name="android:statusBarColor">#08080A</item>
+        <item name="android:navigationBarColor">#0D0D0F</item>
+        <item name="android:windowBackground">#08080A</item>
     </style>
 </resources>

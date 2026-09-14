@@ -31,8 +31,8 @@ import com.remotehost.remote.ui.apps.AppsScreen
 import com.remotehost.remote.ui.components.ConnectionPill
 import com.remotehost.remote.ui.dashboard.DashboardScreen
 import com.remotehost.remote.ui.settings.SettingsScreen
+import com.remotehost.remote.ui.theme.Accent
 import com.remotehost.remote.ui.theme.AccentSoft
-import com.remotehost.remote.ui.theme.AccentText
 import com.remotehost.remote.ui.theme.Bg
 import com.remotehost.remote.ui.theme.BorderColor
 import com.remotehost.remote.ui.theme.MonoFontFamily
@@ -67,31 +67,37 @@ fun MainScaffold(
     val autoReconnect by application.pairingStore.autoReconnectFlow.collectAsStateWithLifecycle(initialValue = true)
     val scope = rememberCoroutineScope()
 
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route
+
     Scaffold(
         modifier = modifier,
         containerColor = Bg,
         topBar = {
-            Column(Modifier.background(Bg)) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 14.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column {
-                        Text("Remote", style = MaterialTheme.typography.titleLarge)
-                        Text(hostName, fontFamily = MonoFontFamily, fontSize = 11.sp, color = OnSurfaceMuted38)
+            // The Dashboard tab draws its own full-bleed header (host name + "Now
+            // controlling" + the live latency pill, per RemotePhonePro.dc.html) instead
+            // of this generic bar — only the other tabs use it.
+            if (currentRoute != BottomTab.Dashboard.route) {
+                Column(Modifier.background(Bg)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column {
+                            Text("Remote", style = MaterialTheme.typography.titleLarge)
+                            Text(hostName, fontFamily = MonoFontFamily, fontSize = 11.sp, color = OnSurfaceMuted38)
+                        }
+                        ConnectionPill(phase = phase)
                     }
-                    ConnectionPill(phase = phase)
+                    HorizontalDivider(color = BorderColor)
                 }
-                HorizontalDivider(color = BorderColor)
             }
         },
         bottomBar = {
             NavigationBar(containerColor = SurfaceSunken, tonalElevation = 0.dp) {
-                val backStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = backStackEntry?.destination?.route
                 BottomTab.entries.forEach { tab ->
                     NavigationBarItem(
                         selected = currentRoute == tab.route,
@@ -105,8 +111,8 @@ fun MainScaffold(
                         icon = { Icon(painterResource(tab.icon), contentDescription = tab.label) },
                         label = { Text(tab.label) },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = AccentText,
-                            selectedTextColor = AccentText,
+                            selectedIconColor = Accent,
+                            selectedTextColor = Accent,
                             unselectedIconColor = OnSurfaceMuted38,
                             unselectedTextColor = OnSurfaceMuted38,
                             indicatorColor = AccentSoft,
@@ -121,7 +127,7 @@ fun MainScaffold(
             startDestination = BottomTab.Dashboard.route,
             modifier = Modifier.padding(padding).fillMaxSize(),
         ) {
-            composable(BottomTab.Dashboard.route) { DashboardScreen(connection) }
+            composable(BottomTab.Dashboard.route) { DashboardScreen(connection, hostName = hostName) }
             composable(BottomTab.Apps.route) { AppsScreen(connection) }
             composable(BottomTab.Touchpad.route) { TouchpadScreen() }
             composable(BottomTab.Settings.route) {

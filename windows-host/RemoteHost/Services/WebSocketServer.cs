@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -31,11 +32,22 @@ public sealed class WebSocketServer
     private WebSocket? _currentSocket;
     private CancellationTokenSource? _currentClientCts;
 
+    private int _commandsHandled;
+    private int _rejectedConnections;
+
     public bool IsRunning { get; private set; }
     public string? ConnectedClientName { get; private set; }
 
+    // Real counters/timestamp backing the Host window's stat row (THEME.md's "one real,
+    // live-updating row" — replacing the mock's fake alternating datasets).
+    public DateTime? StartedAtUtc { get; private set; }
+    public int CommandsHandled => _commandsHandled;
+    public int RejectedConnections => _rejectedConnections;
+
     public event Action? ClientConnected;
     public event Action? ClientDisconnected;
+    public event Action? CommandHandled;
+    public event Action? ConnectionRejected;
 
     public WebSocketServer(
         HostConfig config,
@@ -66,6 +78,7 @@ public sealed class WebSocketServer
         _listener = new TcpListener(IPAddress.Any, _config.Port);
         _listener.Start();
         IsRunning = true;
+        StartedAtUtc = DateTime.UtcNow;
         _log.Add($"Listening on 0.0.0.0:{_config.Port}", LogLevel.System);
 
         _ = Task.Run(() => AcceptLoopAsync(_serverCts.Token));
@@ -79,6 +92,7 @@ public sealed class WebSocketServer
         }
 
         IsRunning = false;
+        StartedAtUtc = null;
 
         try { _serverCts?.Cancel(); } catch { }
         try { _listener?.Stop(); } catch { }
@@ -126,6 +140,8 @@ public sealed class WebSocketServer
         {
             if (remoteEndPoint is null || !SubnetGuard.IsAllowed(remoteEndPoint.Address))
             {
+                Interlocked.Increment(ref _rejectedConnections);
+                ConnectionRejected?.Invoke();
                 _log.Add($"Rejected connection from {remoteEndPoint} (outside local subnet)", LogLevel.Warn);
                 client.Close();
                 return;
@@ -267,6 +283,8 @@ public sealed class WebSocketServer
 
                 if (!authenticated)
                 {
+                    var authStopwatch = Stopwatch.StartNew();
+
                     if (!TryHandleAuth(message, out var name, out var errorMsg))
                     {
                         await SendAsync(socket, new AuthErrorMessage { Message = errorMsg ?? "invalid token" }, sessionCts.Token);
@@ -286,7 +304,7 @@ public sealed class WebSocketServer
                     authenticated = true;
                     ConnectedClientName = name;
                     ClientConnected?.Invoke();
-                    _log.Add($"Client authenticated from {remoteEndPoint.Address}", LogLevel.Ok);
+                    _log.Add($"Client paired: {name} ({remoteEndPoint.Address})", LogLevel.Ok);
 
                     await SendAsync(socket, new AuthOkMessage { Name = Environment.MachineName }, sessionCts.Token);
                     await SendAsync(socket, BuildAppsMessage(), sessionCts.Token);
@@ -297,6 +315,9 @@ public sealed class WebSocketServer
                     {
                         await SendAsync(socket, new StateBrightnessMessage { Value = brightness.Value }, sessionCts.Token);
                     }
+
+                    authStopwatch.Stop();
+                    _log.Add($"{message} → auth_ok", LogLevel.Ok, authStopwatch.Elapsed.TotalMilliseconds);
 
                     continue;
                 }
@@ -387,6 +408,10 @@ public sealed class WebSocketServer
 
     private async Task HandleMessageAsync(WebSocket socket, string message, CancellationToken token)
     {
+        // Timed across the whole receive-to-response cycle so the Traffic pane's timing
+        // column reflects a real, server-measured round trip rather than a placeholder.
+        var stopwatch = Stopwatch.StartNew();
+
         JsonDocument doc;
         try
         {
@@ -395,6 +420,7 @@ public sealed class WebSocketServer
         catch
         {
             await SendAsync(socket, new ErrorMessage { Message = "unsupported action" }, token);
+            RecordHandledCommand(message, stopwatch);
             return;
         }
 
@@ -402,7 +428,6 @@ public sealed class WebSocketServer
         {
             var root = doc.RootElement;
             var type = root.TryGetProperty("type", out var t) ? t.GetString() : null;
-            _log.Add($"< {message}", LogLevel.Incoming);
 
             switch (type)
             {
@@ -429,6 +454,16 @@ public sealed class WebSocketServer
                     break;
             }
         }
+
+        RecordHandledCommand(message, stopwatch);
+    }
+
+    private void RecordHandledCommand(string message, Stopwatch stopwatch)
+    {
+        stopwatch.Stop();
+        Interlocked.Increment(ref _commandsHandled);
+        CommandHandled?.Invoke();
+        _log.Add(message, LogLevel.Incoming, stopwatch.Elapsed.TotalMilliseconds);
     }
 
     private async Task HandleVolumeAsync(WebSocket socket, JsonElement root, CancellationToken token)

@@ -25,9 +25,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.remotehost.remote.connection.PairingInfo
 import com.remotehost.remote.ui.components.ToggleRow
+import com.remotehost.remote.ui.theme.Accent
+import com.remotehost.remote.ui.theme.AccentLight
 import com.remotehost.remote.ui.theme.AccentSoft
 import com.remotehost.remote.ui.theme.BorderColor
-import com.remotehost.remote.ui.theme.DangerSoft
 import com.remotehost.remote.ui.theme.MonoFontFamily
 import com.remotehost.remote.ui.theme.OnSurface
 import com.remotehost.remote.ui.theme.OnSurfaceMuted45
@@ -53,9 +54,9 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(20.dp))
+                .clip(RoundedCornerShape(16.dp))
                 .background(Surface)
-                .border(1.dp, BorderColor, RoundedCornerShape(20.dp))
+                .border(1.dp, BorderColor, RoundedCornerShape(16.dp))
                 .padding(18.dp),
             verticalArrangement = Arrangement.spacedBy(9.dp),
         ) {
@@ -73,9 +74,9 @@ fun SettingsScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(20.dp))
+                .clip(RoundedCornerShape(16.dp))
                 .background(AccentSoft)
-                .border(1.dp, Color(0x668B5CF6), RoundedCornerShape(20.dp))
+                .border(1.dp, Accent.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
                 .clickable(onClick = onRescan)
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -100,9 +101,9 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(20.dp))
+                .clip(RoundedCornerShape(16.dp))
                 .background(Surface)
-                .border(1.dp, BorderColor, RoundedCornerShape(20.dp))
+                .border(1.dp, BorderColor, RoundedCornerShape(16.dp))
                 .padding(horizontal = 18.dp),
         ) {
             ToggleRow(
@@ -121,7 +122,7 @@ fun SettingsScreen(
                 .padding(14.dp),
             contentAlignment = Alignment.Center,
         ) {
-            Text("Disconnect", color = DangerSoft, fontWeight = FontWeight.SemiBold, fontSize = 12.5.sp)
+            Text("Disconnect", color = AccentLight, fontWeight = FontWeight.SemiBold, fontSize = 12.5.sp)
         }
     }
 }

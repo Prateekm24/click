@@ -1,7 +1,9 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using RemoteHost.Models;
 using RemoteHost.Services;
 
@@ -18,10 +20,15 @@ public sealed class MainViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    private readonly DispatcherTimer _uptimeTimer;
+
+    // Newest-first (Traffic pane requirement). The live "LIVE" ticker strip is a compact
+    // re-render of the same real entries via TickerFormatter, not canned text.
     public ObservableCollection<LogEntry> LogEntries { get; } = new();
     public ObservableCollection<AppShortcut> AppShortcuts { get; } = new();
+    public ObservableCollection<string> TickerItems { get; } = new();
 
-    private string _selectedPane = "Status";
+    private string _selectedPane = "Overview";
     public string SelectedPane
     {
         get => _selectedPane;
@@ -155,6 +162,43 @@ public sealed class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    // Stat row (THEME.md: "one real, live-updating view" replacing the mock's fake
+    // alternating datasets) — all four values are backed by real WebSocketServer state.
+    private int _commandsHandledCount;
+    public int CommandsHandledCount
+    {
+        get => _commandsHandledCount;
+        set => SetField(ref _commandsHandledCount, value);
+    }
+
+    private int _rejectedCount;
+    public int RejectedCount
+    {
+        get => _rejectedCount;
+        set => SetField(ref _rejectedCount, value);
+    }
+
+    private string _uptimeText = "0m";
+    public string UptimeText
+    {
+        get => _uptimeText;
+        set => SetField(ref _uptimeText, value);
+    }
+
+    private string _listeningSummaryText = "PAUSED";
+    public string ListeningSummaryText
+    {
+        get => _listeningSummaryText;
+        set => SetField(ref _listeningSummaryText, value);
+    }
+
+    private string _wsAddressText = string.Empty;
+    public string WsAddressText
+    {
+        get => _wsAddressText;
+        set => SetField(ref _wsAddressText, value);
+    }
+
     public MainViewModel(
         HostConfig config,
         WebSocketServer server,
@@ -187,19 +231,33 @@ public sealed class MainViewModel : INotifyPropertyChanged
         _brightnessSupported = currentBrightness.HasValue;
         _brightnessValue = currentBrightness ?? 0;
 
+        // MessageLog.Snapshot() is oldest-first; inserting each at index 0, in that same
+        // order, leaves LogEntries newest-first — the order the Traffic pane requires.
         foreach (var entry in _log.Snapshot())
         {
-            LogEntries.Add(entry);
+            LogEntries.Insert(0, entry);
         }
+        RefreshTicker();
 
         _log.EntryAdded += OnLogEntryAdded;
         _audio.VolumeChanged += OnVolumeChanged;
         _server.ClientConnected += OnClientConnected;
         _server.ClientDisconnected += OnClientDisconnected;
+        _server.CommandHandled += OnCommandHandled;
+        _server.ConnectionRejected += OnConnectionRejected;
         _appLauncher.ShortcutsChanged += OnShortcutsChanged;
+
+        _commandsHandledCount = _server.CommandsHandled;
+        _rejectedCount = _server.RejectedConnections;
 
         Listening = _server.IsRunning;
         RefreshNetworkInfo();
+        RefreshListeningSummary();
+
+        _uptimeTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _uptimeTimer.Tick += (_, _) => RefreshUptime();
+        _uptimeTimer.Start();
+        RefreshUptime();
     }
 
     public void RefreshNetworkInfo()
@@ -207,7 +265,51 @@ public sealed class MainViewModel : INotifyPropertyChanged
         var ip = SubnetGuard.GetPrimaryIPv4();
         LocalIp = ip?.ToString() ?? "unavailable";
         Port = _config.Port;
+        WsAddressText = $"ws://{LocalIp}:{Port}";
         RegenerateQr();
+    }
+
+    private void RefreshListeningSummary()
+    {
+        ListeningSummaryText = Listening
+            ? $"LISTENING · {(IsClientConnected ? 1 : 0)} CLIENT"
+            : "PAUSED";
+    }
+
+    private void RefreshUptime()
+    {
+        var startedAtUtc = _server.StartedAtUtc;
+        if (!startedAtUtc.HasValue)
+        {
+            UptimeText = "0m";
+            return;
+        }
+
+        var elapsed = DateTime.UtcNow - startedAtUtc.Value;
+        UptimeText = elapsed.TotalHours >= 1
+            ? $"{(int)elapsed.TotalHours}h {elapsed.Minutes}m"
+            : elapsed.TotalMinutes >= 1
+                ? $"{(int)elapsed.TotalMinutes}m"
+                : $"{Math.Max(0, (int)elapsed.TotalSeconds)}s";
+    }
+
+    private void RefreshTicker()
+    {
+        // LogEntries is newest-first; take the most recent handful, put them back in
+        // chronological order, then double the list so the marquee loop is seamless
+        // (mirrors HostWindowQuiet.dc.html's `ticker: t.concat(t)`).
+        var recent = LogEntries.Take(14).Select(TickerFormatter.Format).Reverse().ToList();
+        if (recent.Count == 0)
+        {
+            TickerItems.Clear();
+            return;
+        }
+
+        TickerItems.Clear();
+        foreach (var item in recent.Concat(recent))
+        {
+            TickerItems.Add(item);
+        }
     }
 
     public void RegenerateQr()
@@ -251,6 +353,8 @@ public sealed class MainViewModel : INotifyPropertyChanged
             _server.Start();
         }
         Listening = _server.IsRunning;
+        RefreshListeningSummary();
+        RefreshUptime();
     }
 
     public void AddShortcut(string name, string path)
@@ -279,12 +383,23 @@ public sealed class MainViewModel : INotifyPropertyChanged
     {
         RunOnUi(() =>
         {
-            LogEntries.Add(entry);
+            LogEntries.Insert(0, entry);
             while (LogEntries.Count > 50)
             {
-                LogEntries.RemoveAt(0);
+                LogEntries.RemoveAt(LogEntries.Count - 1);
             }
+            RefreshTicker();
         });
+    }
+
+    private void OnCommandHandled()
+    {
+        RunOnUi(() => CommandsHandledCount = _server.CommandsHandled);
+    }
+
+    private void OnConnectionRejected()
+    {
+        RunOnUi(() => RejectedCount = _server.RejectedConnections);
     }
 
     private void OnVolumeChanged(int value, bool muted)
@@ -302,6 +417,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         {
             IsClientConnected = true;
             ClientStatusText = _server.ConnectedClientName ?? "Connected";
+            RefreshListeningSummary();
         });
     }
 
@@ -311,6 +427,7 @@ public sealed class MainViewModel : INotifyPropertyChanged
         {
             IsClientConnected = false;
             ClientStatusText = "No client connected";
+            RefreshListeningSummary();
         });
     }
 
