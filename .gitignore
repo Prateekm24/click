@@ -1,0 +1,22 @@
+# .NET / Windows Host build output
+windows-host/**/bin/
+windows-host/**/obj/
+
+# Android / Gradle build output
+android/**/build/
+android/.gradle/
+android/local.properties
+android/.idea/
+android/*.iml
+android/.cxx/
+android/captures/
+
+# Editor/OS noise
+.vs/
+.vscode/
+*.user
+Thumbs.db
+.DS_Store
+
+# Scratch tooling directories (e.g. a local JDK/SDK/Gradle pulled down for a one-off build)
+.buildtools/
