@@ -32,13 +32,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.Row
+import com.remotehost.remote.connection.PairingInfo
 import com.remotehost.remote.ui.theme.Accent
 import com.remotehost.remote.ui.theme.Bg
+import com.remotehost.remote.ui.theme.BorderColor
 import com.remotehost.remote.ui.theme.BorderStrong
+import com.remotehost.remote.ui.theme.MonoFontFamily
 import com.remotehost.remote.ui.theme.NeutralLost
 import com.remotehost.remote.ui.theme.OnSurface
 import com.remotehost.remote.ui.theme.OnSurfaceMuted38
 import com.remotehost.remote.ui.theme.OnSurfaceMuted45
+import com.remotehost.remote.ui.theme.Surface
 import com.remotehost.remote.ui.theme.Warn
 
 @Composable
@@ -52,6 +57,7 @@ private fun ConnectionStateScaffold(
     pulsing: Boolean = false,
     accentCta: Boolean = false,
     onChangeDetails: (() -> Unit)? = null,
+    sessionDetails: PairingInfo? = null,
 ) {
     Column(
         Modifier
@@ -106,6 +112,10 @@ private fun ConnectionStateScaffold(
                 color = OnSurfaceMuted45,
                 textAlign = TextAlign.Center,
             )
+
+            if (sessionDetails != null) {
+                SessionDetails(sessionDetails)
+            }
         }
 
         Box(
@@ -146,7 +156,12 @@ private fun ConnectionStateScaffold(
 }
 
 @Composable
-fun ConnectingScreen(onCancel: () -> Unit, onChangeDetails: () -> Unit, modifier: Modifier = Modifier) {
+fun ConnectingScreen(
+    onCancel: () -> Unit,
+    onChangeDetails: () -> Unit,
+    pairing: PairingInfo? = null,
+    modifier: Modifier = Modifier,
+) {
     ConnectionStateScaffold(
         code = "STATE / CONNECTING",
         title = "Connecting…",
@@ -156,11 +171,17 @@ fun ConnectingScreen(onCancel: () -> Unit, onChangeDetails: () -> Unit, modifier
         dotColor = Warn,
         pulsing = true,
         onChangeDetails = onChangeDetails,
+        sessionDetails = pairing,
     )
 }
 
 @Composable
-fun ReconnectingScreen(onCancel: () -> Unit, onChangeDetails: () -> Unit, modifier: Modifier = Modifier) {
+fun ReconnectingScreen(
+    onCancel: () -> Unit,
+    onChangeDetails: () -> Unit,
+    pairing: PairingInfo? = null,
+    modifier: Modifier = Modifier,
+) {
     ConnectionStateScaffold(
         code = "STATE / SEARCHING",
         title = "Reconnecting…",
@@ -170,6 +191,7 @@ fun ReconnectingScreen(onCancel: () -> Unit, onChangeDetails: () -> Unit, modifi
         dotColor = Warn,
         pulsing = true,
         onChangeDetails = onChangeDetails,
+        sessionDetails = pairing,
     )
 }
 
@@ -223,4 +245,44 @@ fun DisconnectedScreen(onReconnect: () -> Unit, onChangeDetails: () -> Unit, mod
         dotColor = NeutralLost,
         onChangeDetails = onChangeDetails,
     )
+}
+
+/** Lets you confirm the target while stuck connecting, instead of guessing blind. */
+@Composable
+private fun SessionDetails(pairing: PairingInfo) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Surface)
+            .border(1.dp, BorderColor, RoundedCornerShape(14.dp))
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(7.dp),
+    ) {
+        Text(
+            text = "SESSION DETAILS",
+            style = MaterialTheme.typography.labelSmall,
+            letterSpacing = 1.sp,
+            color = OnSurfaceMuted38,
+        )
+        SessionDetailRow("host name", pairing.name)
+        SessionDetailRow("address", "${pairing.ip}:${pairing.port}")
+        SessionDetailRow("token", maskToken(pairing.token))
+    }
+}
+
+@Composable
+private fun SessionDetailRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(label, fontFamily = MonoFontFamily, fontSize = 12.sp, color = OnSurfaceMuted45)
+        Text(value, fontFamily = MonoFontFamily, fontSize = 12.sp, color = OnSurface)
+    }
+}
+
+private fun maskToken(token: String): String {
+    if (token.length <= 4) return "•".repeat(token.length)
+    return "•".repeat(token.length - 4) + token.takeLast(4)
 }

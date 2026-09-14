@@ -15,6 +15,20 @@
     </shell:WindowChrome.WindowChrome>
 
     <Grid>
+        <Grid.Style>
+            <Style TargetType="Grid">
+                <Style.Triggers>
+                    <!-- A borderless WindowChrome window maximized on a wide/landscape
+                         monitor otherwise overflows past the screen edges and under the
+                         taskbar (WPF measures Maximized against the full monitor bounds,
+                         not the work area) — pull content in by the resize-border amount
+                         to compensate, matching ResizeBorderThickness above. -->
+                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=WindowState}" Value="Maximized">
+                        <Setter Property="Margin" Value="7"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </Grid.Style>
         <Grid.RowDefinitions>
             <RowDefinition Height="38"/>
             <RowDefinition Height="Auto"/>
@@ -351,8 +365,8 @@
                                 <ColumnDefinition Width="10"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox x:Name="AppNameTextBox" Grid.Column="0" Style="{StaticResource DarkTextBoxStyle}" ToolTip="Shortcut name"/>
-                            <TextBox x:Name="AppPathTextBox" Grid.Column="2" Style="{StaticResource DarkTextBoxStyle}" ToolTip="Full path to .exe or shortcut"/>
+                            <TextBox x:Name="AppNameTextBox" Grid.Column="0" Style="{StaticResource DarkTextBoxStyle}" Tag="Name (e.g. Spotify)" ToolTip="Shortcut name"/>
+                            <TextBox x:Name="AppPathTextBox" Grid.Column="2" Style="{StaticResource DarkTextBoxStyle}" Tag="C:\Program Files\App\App.exe" ToolTip="Full path to .exe or shortcut"/>
                             <Button Grid.Column="4" Content="Browse…" Style="{StaticResource SecondaryButtonStyle}" Click="BrowseAppPath_Click"/>
                             <Button Grid.Column="6" Content="Add" Style="{StaticResource PrimaryButtonStyle}" Click="AddShortcut_Click"/>
                         </Grid>
@@ -379,6 +393,10 @@
                             <StackPanel Width="260" Margin="24,0,0,0">
                                 <Border CornerRadius="12" BorderBrush="{StaticResource Border07Brush}" BorderThickness="1" Padding="16" Margin="0,0,0,11">
                                     <StackPanel>
+                                        <Grid Margin="0,0,0,9">
+                                            <TextBlock Text="host name" FontFamily="{StaticResource MonoFontFamily}" FontSize="11.5" Foreground="{StaticResource OnSurfaceMuted32Brush}" HorizontalAlignment="Left"/>
+                                            <TextBlock Text="{Binding MachineName}" FontFamily="{StaticResource MonoFontFamily}" FontSize="11.5" Foreground="{StaticResource OnSurfaceBrush}" HorizontalAlignment="Right"/>
+                                        </Grid>
                                         <Grid Margin="0,0,0,9">
                                             <TextBlock Text="address" FontFamily="{StaticResource MonoFontFamily}" FontSize="11.5" Foreground="{StaticResource OnSurfaceMuted32Brush}" HorizontalAlignment="Left"/>
                                             <TextBlock Text="{Binding LocalIp}" FontFamily="{StaticResource MonoFontFamily}" FontSize="11.5" Foreground="{StaticResource OnSurfaceBrush}" HorizontalAlignment="Right"/>

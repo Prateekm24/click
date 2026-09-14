@@ -296,8 +296,12 @@ public sealed class MainViewModel : INotifyPropertyChanged
     private void RefreshTicker()
     {
         // LogEntries is newest-first; take the most recent handful, put them back in
-        // chronological order, then double the list so the marquee loop is seamless
-        // (mirrors HostWindowQuiet.dc.html's `ticker: t.concat(t)`).
+        // chronological order, then repeat the list so the marquee loop is seamless
+        // (mirrors HostWindowQuiet.dc.html's `ticker: t.concat(t)`). A plain doubling
+        // left visible empty space on a wide/maximized window when little traffic has
+        // happened yet (e.g. right after startup) — repeat enough times to comfortably
+        // fill a wide row regardless, always an even count so the halfway point (used
+        // by the wrap-around loop in MainWindow.xaml.cs) still lines up with a full cycle.
         var recent = LogEntries.Take(14).Select(TickerFormatter.Format).Reverse().ToList();
         if (recent.Count == 0)
         {
@@ -305,10 +309,16 @@ public sealed class MainViewModel : INotifyPropertyChanged
             return;
         }
 
+        const int minTotalItems = 40;
+        var repeats = Math.Max(2, (int)Math.Ceiling(minTotalItems / (double)recent.Count / 2) * 2);
+
         TickerItems.Clear();
-        foreach (var item in recent.Concat(recent))
+        for (var i = 0; i < repeats; i++)
         {
-            TickerItems.Add(item);
+            foreach (var item in recent)
+            {
+                TickerItems.Add(item);
+            }
         }
     }
 

@@ -244,7 +244,10 @@
                 </Setter>
             </Style>
 
-            <!-- Text input on dark surfaces -->
+            <!-- Text input on dark surfaces. Set Tag to a hint string (e.g. "Shortcut
+                 name") to show it as gray placeholder text when the box is empty —
+                 TextBox has no native placeholder, so Tag doubles as one here via the
+                 template below. -->
             <Style x:Key="DarkTextBoxStyle" TargetType="TextBox">
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="Foreground" Value="{StaticResource OnSurfaceBrush}"/>
@@ -258,8 +261,17 @@
                     <Setter.Value>
                         <ControlTemplate TargetType="TextBox">
                             <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="9">
-                                <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
+                                <Grid>
+                                    <TextBlock x:Name="Placeholder" Text="{TemplateBinding Tag}" Foreground="{StaticResource OnSurfaceMuted35Brush}"
+                                               Margin="{TemplateBinding Padding}" VerticalAlignment="Center" IsHitTestVisible="False" Visibility="Collapsed"/>
+                                    <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
+                                </Grid>
                             </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="Text" Value="">
+                                    <Setter TargetName="Placeholder" Property="Visibility" Value="Visible"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>

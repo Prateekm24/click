@@ -81,10 +81,10 @@ import kotlin.math.sin
 
 /**
  * New "Now controlling" home screen (RemotePhonePro.dc.html / THEME.md). The radial
- * dial IS the volume control (drag anywhere on/near it), a NIGHT slider both sends
- * brightness to the Host and dims this phone's own screen as a local preview effect,
- * and the header carries a live-measured latency pill (see [RemoteConnection.rtt]) —
- * not the mock's tap-to-cycle demo. Owns its own full-bleed header (host name + "Now
+ * dial IS the volume control (drag anywhere on/near it), a NIGHT slider sends
+ * brightness to the Host only — it must not affect this phone's own screen — and the
+ * header carries a live-measured latency pill (see [RemoteConnection.rtt]) — not the
+ * mock's tap-to-cycle demo. Owns its own full-bleed header (host name + "Now
  * controlling" + the latency pill) rather than the shared app top bar; see AppNav.kt.
  */
 @Composable
@@ -109,6 +109,11 @@ fun DashboardScreen(connection: RemoteConnection, hostName: String, modifier: Mo
             snackbarHostState.currentSnackbarData?.dismiss()
             snackbarHostState.showSnackbar(message)
         }
+    }
+
+    fun handleMedia(action: String) {
+        if (action == "play_pause") playing = !playing
+        connection.sendMedia(action)
     }
 
     val liveColor = latencyColor(rtt)
@@ -149,13 +154,15 @@ fun DashboardScreen(connection: RemoteConnection, hostName: String, modifier: Mo
                         onClick = connection::sendVolumeMute,
                     )
                     DialActionButton(
-                        label = "Media & keys",
+                        label = "Keys",
                         active = false,
                         activeColor = liveColor,
                         modifier = Modifier.weight(1f),
                         onClick = { sheetVisible = true },
                     )
                 }
+                Spacer(Modifier.height(18.dp))
+                MediaRow(playing = playing, liveColor = liveColor, onMedia = ::handleMedia)
             }
 
             NightRow(
@@ -173,15 +180,6 @@ fun DashboardScreen(connection: RemoteConnection, hostName: String, modifier: Mo
                 modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
             )
         }
-
-        // NIGHT dim overlay: a real, full-screen effect on THIS phone's display (a
-        // preview of the room going dark), independent of whatever the Host actually
-        // does with the same brightness value.
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = (brightness / 160f).coerceIn(0f, 1f))),
-        )
 
         AnimatedVisibility(
             visible = sheetVisible,
@@ -206,15 +204,7 @@ fun DashboardScreen(connection: RemoteConnection, hostName: String, modifier: Mo
             exit = slideOutVertically(tween(260)) { it },
             modifier = Modifier.align(Alignment.BottomCenter),
         ) {
-            MediaKeysSheet(
-                playing = playing,
-                liveColor = liveColor,
-                onMedia = { action ->
-                    if (action == "play_pause") playing = !playing
-                    connection.sendMedia(action)
-                },
-                onKeyTap = { toast("Keyboard input isn't available yet") },
-            )
+            KeysSheet(onKeyTap = { toast("Keyboard input isn't available yet") })
         }
 
         SnackbarHost(
@@ -453,14 +443,25 @@ private fun QuickLaunchRow(apps: List<AppItem>, onLaunch: (AppItem) -> Unit, mod
     }
 }
 
+/** Inline playback row living in the dashboard body (not the Keys sheet) — always visible. */
 @Composable
-private fun MediaKeysSheet(
-    playing: Boolean,
-    liveColor: Color,
-    onMedia: (String) -> Unit,
-    onKeyTap: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+private fun MediaRow(playing: Boolean, liveColor: Color, onMedia: (String) -> Unit, modifier: Modifier = Modifier) {
+    Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        MediaTile("−10s", mono = true, modifier = Modifier.weight(1f)) { onMedia("seek_back") }
+        MediaTile("⏮", modifier = Modifier.weight(1f)) { onMedia("previous") }
+        MediaTile(
+            label = if (playing) "❚❚" else "▶",
+            primary = true,
+            primaryColor = liveColor,
+            modifier = Modifier.weight(1f),
+        ) { onMedia("play_pause") }
+        MediaTile("⏭", modifier = Modifier.weight(1f)) { onMedia("next") }
+        MediaTile("+10s", mono = true, modifier = Modifier.weight(1f)) { onMedia("seek_forward") }
+    }
+}
+
+@Composable
+private fun KeysSheet(onKeyTap: () -> Unit, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -478,22 +479,6 @@ private fun MediaKeysSheet(
                 .background(Color.White.copy(alpha = 0.2f)),
         )
         Spacer(Modifier.height(18.dp))
-        Text("Playback", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = OnSurface)
-        Spacer(Modifier.height(14.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            MediaTile("−10s", mono = true, modifier = Modifier.weight(1f)) { onMedia("seek_back") }
-            MediaTile("⏮", modifier = Modifier.weight(1f)) { onMedia("previous") }
-            MediaTile(
-                label = if (playing) "❚❚" else "▶",
-                primary = true,
-                primaryColor = liveColor,
-                modifier = Modifier.weight(1f),
-            ) { onMedia("play_pause") }
-            MediaTile("⏭", modifier = Modifier.weight(1f)) { onMedia("next") }
-            MediaTile("+10s", mono = true, modifier = Modifier.weight(1f)) { onMedia("seek_forward") }
-        }
-
-        Spacer(Modifier.height(20.dp))
         Text("Keys", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = OnSurface)
         Spacer(Modifier.height(14.dp))
         val keys = listOf("esc", "tab", "↑", "space", "←", "↓", "→", "enter")

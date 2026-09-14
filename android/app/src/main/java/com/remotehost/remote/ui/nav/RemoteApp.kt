@@ -96,6 +96,7 @@ fun RemoteApp(application: RemoteApplication) {
                 stopConnectionService(context)
             },
             onChangeDetails = ::changeDetails,
+            pairing = currentPairing,
         )
         ConnectionPhase.Connecting, ConnectionPhase.NoPairing -> ConnectingScreen(
             onCancel = {
@@ -103,6 +104,7 @@ fun RemoteApp(application: RemoteApplication) {
                 stopConnectionService(context)
             },
             onChangeDetails = ::changeDetails,
+            pairing = currentPairing,
         )
         ConnectionPhase.Disconnected -> DisconnectedScreen(
             onReconnect = { startConnectionService(context, currentPairing) },
